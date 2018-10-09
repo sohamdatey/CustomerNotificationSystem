@@ -1,0 +1,211 @@
+-------------------------------------dispatcher-servlet.xml-------------------------------------------------------------------------------
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+	http://www.springframework.org/schema/mvc
+    http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+
+
+	<!--Enables MVC annptations like @Valide, @RequestMapping etc. -->
+	<mvc:annotation-driven validator="validator" />
+
+	<!--Scan @Repository, @Service, @Component and @Controller spring beans -->
+	<context:component-scan base-package="com.sunilos.proj0" />
+
+	<mvc:resources mapping="/resources/**" location="/resources/" />
+
+	<!--Tiles configuration start -->
+	<bean id="tilesConfigurer"
+		class="org.springframework.web.servlet.view.tiles2.TilesConfigurer">
+		<property name="definitions">
+			<list>
+				<value>/WEB-INF/tiles.xml</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+		<property name="viewClass">
+			<value>
+				org.springframework.web.servlet.view.tiles2.TilesView
+			</value>
+		</property>
+	</bean>
+	<!--Tiles configuration End -->
+
+	<!-- Apply Front Controller -->
+
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/ctl/**/*" />
+			<bean class="com.sunilos.proj0.ctl.FrontCtl" />
+		</mvc:interceptor>
+	</mvc:interceptors>
+
+	<!-- i18n Start -->
+	<!-- Defines the message resources -->
+	<bean id="messageSource"
+		class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basename" value="classpath:messages" />
+		<property name="defaultEncoding" value="UTF-8" />
+	</bean>
+
+
+	<bean id="localeResolver"
+		class="org.springframework.web.servlet.i18n.CookieLocaleResolver">
+		<property name="defaultLocale" value="en"></property>
+	</bean>
+
+	<mvc:interceptors>
+		<bean id="localeChangeInterceptor"
+			class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+			<property name="paramName" value="lang" />
+		</bean>
+	</mvc:interceptors>
+
+	<!-- JSR-303 -->
+	<bean id="validator"
+		class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+		<property name="validationMessageSource" ref="messageSource" />
+	</bean>
+
+	<!-- i18n End -->
+
+	<!-- Database Configuration -->
+	<import resource="hibernate-servlet.xml" />
+
+	<!-- Mail Sender Start -->
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+
+		<property name="host" value="smtp.gmail.com" />
+		<property name="port" value="587" />
+		<property name="protocol" value="smtp" />
+
+		<property name="username" value="your@gmail.com" />
+		<property name="password" value="yourpassword" />
+
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.smtp.auth">true</prop>
+				<prop key="mail.smtp.starttls.enable">true</prop>
+				<prop key="mail.smtp.debug">false</prop>
+			</props>
+		</property>
+	</bean>
+	<!-- Mail Sender End -->
+
+</beans>
+
+
+
+
+
+--------------------------------------------------------------------------------------------------------------
+
+
+
+hibernate--------------------------------xml
+
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+	http://www.springframework.org/schema/mvc
+    http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+
+
+	<!--Data Connection Pool and Trasnsaction handling start -->
+	<bean id="dataSourceC3P0" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
+		<property name="jdbcUrl" value="jdbc:mysql://localhost:3306/st_orsmvc" />
+		<property name="user" value="root" />
+		<property name="password" value="" />
+		<property name="acquireIncrement" value="2" />
+		<property name="minPoolSize" value="1" />
+		<property name="maxPoolSize" value="5" />
+		<property name="maxIdleTime" value="60" />
+	</bean>
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource">
+			<ref bean="dataSourceC3P0" />
+		</property>
+
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">
+					org.hibernate.dialect.MySQLDialect
+				</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>
+		</property>
+
+		<property name="annotatedClasses">
+			<list>
+				<value>com.sunilos.proj0.dto.RoleDTO</value>
+				<value>com.sunilos.proj0.dto.UserDTO</value>
+				<value>com.sunilos.proj0.dto.StudentDTO</value>
+				<value>com.sunilos.proj0.dto.MarksheetDTO</value>
+				<value>com.sunilos.proj0.dto.CollegeDTO</value>
+			</list>
+		</property>
+
+	</bean>
+
+	<bean id="hibernateTransactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<!-- enables annotation based transaction -->
+
+	<tx:annotation-driven transaction-manager="hibernateTransactionManager" />
+
+</beans>
+
+-----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
