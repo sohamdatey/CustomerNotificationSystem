@@ -1,0 +1,30 @@
+Email and all----------------------
+
+----------------------------------------------a model method-----------------------------------
+public boolean forgetPassword(String login) throws ApplicationException, RecordNotFoundException {
+		RestaurantDTO restaurantDTO = findByLogin(login);
+		boolean flag = false;
+
+		if (restaurantDTO == null) {
+			throw new RecordNotFoundException("Email-ID does not exists !");
+
+		}
+
+		HashMap<String, String> map = new HashMap<String, String>();
+		map.put("login", restaurantDTO.getLogin());
+		map.put("password", restaurantDTO.getPassword());
+		map.put("restaurant", restaurantDTO.getName());
+		String message = EmailBuilder.getForgetPasswordMessage(map);
+		EmailMessage msg = new EmailMessage();
+		msg.setTo(login);
+		msg.setSubject("OFO Password reset");
+		msg.setMessage(message);
+		msg.setMessageType(EmailMessage.HTML_MSG);
+		EmailUtility.sendMail(msg);
+		flag = true;
+
+		return flag;
+	}
+
+--------------------------------------------------------------------------------------------------------------------
+
